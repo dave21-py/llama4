@@ -27,9 +27,23 @@ class BPETokenizer:
                 word_splits[word_tuple] += 1
         return word_splits
 
+
+    def _get_pair_stats(self, splits):
+        pair_counts = defaultdict(int)
+        for word_tuple, frequency in splits.items():
+            for i in range(len(word_tuple) - 1):
+                pair = (word_tuple[i], word_tuple[i+1])
+                pair_counts[pair] += frequency
+        return pair_counts
+
+
 # Test to see if it works
 if __name__== "__main__":
     tokenizer = BPETokenizer()
     sample_corpus = ["The cat is fast", "The car is red"]
     splits = tokenizer._pre_tokenize(sample_corpus)
-    print("Stpe 1 output:", dict(splits))
+    pair_stats = tokenizer._get_pair_stats(splits)
+    print("Step 2 output:")
+    for pair in pair_stats:
+        count = pair_stats[pair]
+        print(f"Pair {pair} appears {count} times")
