@@ -56,10 +56,10 @@ class BPETokenizer:
 
     def train(self, text_corpus, num_merges = 20):
         # num of tokens is num_merges
-        self.vocab = 0
+        self.vocab = []
         self.merges = {}
         # pretokenize
-        splits = tokenizer._pre_tokenize(text_corpus)
+        splits = self._pre_tokenize(text_corpus)
         # inintalise the vocab
         unique_chars = set()
         for word_tuple in splits:
@@ -91,11 +91,15 @@ class BPETokenizer:
         print("Training Complete!")
         print(f"Final Vocabulary Size: {len(self.vocab)}")
 
+        self.vocab_map = {} # token: i # added for the ID in encode
+        for i, token in enumerate(self.vocab):
+            self.vocab_map[token] = i
+
 
     def encode(self, text):
         "Tokenises the text learned from our merged rules"
-        splits = tokenizer._pre_tokenize([text])
-        final_tokens = []
+        splits = self._pre_tokenize([text])
+        final_ids = [] # now returns the ID
 
         for word_tuple in splits:
             # convert the word to list to make changes
@@ -126,10 +130,13 @@ class BPETokenizer:
                 if not has_merged:
                     break
 
+            for token_string in word:  # New IDS
+                if token_string in self.vocab_map:
+                    final_ids.append(self.vocab_map[token_string])
+                else:
+                    print(f"Warning, no valid token: {token_string}")
+        return final_ids
 
-
-            final_tokens.extend(word)
-        return final_tokens
 
 
 # Test to see if it works
