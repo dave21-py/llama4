@@ -92,8 +92,44 @@ class BPETokenizer:
         print(f"Final Vocabulary Size: {len(self.vocab)}")
 
 
+    def encode(self, text):
+        "Tokenises the text learned from our merged rules"
+        splits = tokenizer._pre_tokenize([text])
+        final_tokens = []
+
+        for word_tuple in splits:
+            # convert the word to list to make changes
+            word = list(word_tuple)
+            # Keep trying to merge until no more rules apply to this word
+            while True:
+                has_merged = False
+                i = 0
+                new_word = []
+                while i < len(word) - 1:
+                    pair = (word[i], word[i+1])
+                    if pair in self.merges:
+                        # merge it using the current rules
+                        merged_token = self.merges[pair]
+                        new_word.append(merged_token)
+                        i += 2
+                        has_merged = True
+                    else:
+                        new_word.append(word[i])
+                        i += 1
+                # Dont forget the last character if we didnt merge it
+                if i < len(word): # </w>
+                    new_word.append(word[i])
+
+                word = new_word
+
+                # If we didn't find anything to merge in this pass, we are done with this word
+                if not has_merged:
+                    break
 
 
+
+            final_tokens.extend(word)
+        return final_tokens
 
 
 # Test to see if it works
@@ -109,9 +145,11 @@ if __name__== "__main__":
     # train for 15 merges
     tokenizer.train(corpus, num_merges=15)
 
+    # test encoding
+    test_sentence = "This is the document"
+    tokens = tokenizer.encode(test_sentence)
 
-    print("\nTop 5 Learned Merges:")
-    # Print the first 5 rules we learned
-    for i, (pair, token) in enumerate(tokenizer.merges.items()):
-        if i >= 5: break
-        print(f"{pair} -> {token}")
+
+    print("\nEncoding test")
+    print(f"Input: {test_sentence}")
+    print(f"Tokens: {tokens}")
